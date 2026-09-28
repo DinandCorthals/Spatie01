@@ -9,63 +9,59 @@ const WORLD_W = 28;
 const WORLD_H = 16;
 
 const BLOCKS = {
-  grass: { color: '#5dbb5d', solid: true },
-  dirt: { color: '#8d5a2b', solid: true },
-  stone: { color: '#8e8e8e', solid: true },
-  sand: { color: '#d9c47a', solid: true },
-  log: { color: '#7b4d22', solid: true },
+  grass: { color: '#5eba5a', solid: true },
+  dirt: { color: '#8b5b2d', solid: true },
+  stone: { color: '#8c8c8c', solid: true },
+  sand: { color: '#d9c77a', solid: true },
+  log: { color: '#794d20', solid: true },
   leaves: { color: '#4caf50', solid: true },
-  water: { color: '#2e7de9', solid: false },
+  water: { color: '#2b7fe8', solid: false },
   lava: { color: '#ff5a00', solid: false },
-  bedrock: { color: '#3d3d3d', solid: true },
+  bedrock: { color: '#3a3a3a', solid: true },
 };
 
 let player = {
-  x: 6 * TILE + 10,
-  y: 6 * TILE + 10,
-  size: 20,
+  x: 6 * TILE + 12,
+  y: 6 * TILE + 12,
+  size: 18,
   speed: 2.4,
   health: 10,
   blocks: 0,
+  dirX: 1,
+  dirY: 0,
 };
 
+const keys = {};
 let world = [];
 
-const inputState = {
-  w: false,
-  a: false,
-  s: false,
-  d: false,
-  arrowup: false,
-  arrowdown: false,
-  arrowleft: false,
-  arrowright: false,
-};
+function randomTileForDepth(y) {
+  if (y > 10) return 'water';
+  if (y > 8) return Math.random() < 0.8 ? 'grass' : 'sand';
+  if (y > 6) return Math.random() < 0.7 ? 'dirt' : 'stone';
+  if (Math.random() < 0.12) return 'log';
+  if (Math.random() < 0.08) return 'lava';
+  return 'stone';
+}
 
 function createWorld() {
   world = Array.from({ length: WORLD_H }, (_, y) =>
     Array.from({ length: WORLD_W }, (_, x) => {
       const edge = x === 0 || y === 0 || x === WORLD_W - 1 || y === WORLD_H - 1;
       if (edge) return 'bedrock';
-      if (y > 10) return 'water';
-      if (y > 8) return Math.random() < 0.8 ? 'grass' : 'sand';
-      if (y > 6) return Math.random() < 0.7 ? 'dirt' : 'stone';
-      if (Math.random() < 0.12) return 'log';
-      if (Math.random() < 0.08) return 'lava';
-      return 'stone';
+      return randomTileForDepth(y);
     })
   );
 
   for (let y = 0; y < WORLD_H; y += 1) {
     for (let x = 0; x < WORLD_W; x += 1) {
-      if (world[y][x] === 'grass' && Math.random() < 0.15) {
+      if (world[y][x] === 'grass' && Math.random() < 0.12) {
         world[y][x] = 'leaves';
       }
     }
   }
 }
 
-function isSolid(type) {
+function isSolidType(type) {
   return !!BLOCKS[type]?.solid;
 }
 
@@ -82,16 +78,16 @@ function collides(nx, ny) {
   const top = ny - player.size / 2;
   const bottom = ny + player.size / 2;
 
-  const points = [
+  const cells = [
     [Math.floor(left / TILE), Math.floor(top / TILE)],
     [Math.floor(right / TILE), Math.floor(top / TILE)],
     [Math.floor(left / TILE), Math.floor(bottom / TILE)],
     [Math.floor(right / TILE), Math.floor(bottom / TILE)],
   ];
 
-  return points.some(([x, y]) => {
+  return cells.some(([x, y]) => {
     if (x < 0 || y < 0 || x >= WORLD_W || y >= WORLD_H) return true;
-    return isSolid(world[y][x]);
+    return isSolidType(world[y][x]);
   });
 }
 
@@ -99,18 +95,21 @@ function updatePlayer() {
   let moveX = 0;
   let moveY = 0;
 
-  if (inputState.w || inputState.arrowup) moveY -= 1;
-  if (inputState.s || inputState.arrowdown) moveY += 1;
-  if (inputState.a || inputState.arrowleft) moveX -= 1;
-  if (inputState.d || inputState.arrowright) moveX += 1;
+  if (keys.w || keys.ArrowUp) moveY -= 1;
+  if (keys.s || keys.ArrowDown) moveY += 1;
+  if (keys.a || keys.ArrowLeft) moveX -= 1;
+  if (keys.d || keys.ArrowRight) moveX += 1;
 
   if (moveX !== 0 || moveY !== 0) {
-    const length = Math.hypot(moveX, moveY) || 1;
-    const targetX = player.x + (moveX / length) * player.speed;
-    const targetY = player.y + (moveY / length) * player.speed;
+    player.dirX = moveX;
+    player.dirY = moveY;
 
-    if (!collides(targetX, player.y)) player.x = targetX;
-    if (!collides(player.x, targetY)) player.y = targetY;
+    const length = Math.hypot(moveX, moveY) || 1;
+    const nextX = player.x + (moveX / length) * player.speed;
+    const nextY = player.y + (moveY / length) * player.speed;
+
+    if (!collides(nextX, player.y)) player.x = nextX;
+    if (!collides(player.x, nextY)) player.y = nextY;
   }
 
   const tile = cellAt(player.x, player.y);
@@ -121,8 +120,10 @@ function updatePlayer() {
   if (player.health <= 0) {
     player.health = 10;
     player.blocks = 0;
-    player.x = 6 * TILE + 10;
-    player.y = 6 * TILE + 10;
+    player.x = 6 * TILE + 12;
+    player.y = 6 * TILE + 12;
+    player.dirX = 1;
+    player.dirY = 0;
   }
 
   player.x = Math.max(player.size / 2, Math.min(canvas.width - player.size / 2, player.x));
@@ -130,13 +131,18 @@ function updatePlayer() {
 }
 
 function mineCurrentBlock() {
-  const px = player.x + player.size / 2 + 8;
-  const py = player.y + player.size / 2 + 8;
+  const offsetX = player.dirX || 1;
+  const offsetY = player.dirY || 0;
+
+  const px = player.x + offsetX * 24;
+  const py = player.y + offsetY * 24;
 
   const tx = Math.floor(px / TILE);
   const ty = Math.floor(py / TILE);
 
-  const target = world[ty]?.[tx];
+  if (tx < 0 || ty < 0 || tx >= WORLD_W || ty >= WORLD_H) return;
+
+  const target = world[ty][tx];
   if (!target || target === 'bedrock' || target === 'water' || target === 'lava') {
     return;
   }
@@ -158,19 +164,19 @@ function drawPlayer() {
   const px = player.x - player.size / 2;
   const py = player.y - player.size / 2;
 
-  ctx.fillStyle = '#7347b5';
+  ctx.fillStyle = '#7a4ecf';
   ctx.fillRect(px, py + 8, player.size, player.size - 8);
 
-  ctx.fillStyle = '#f2d8a5';
+  ctx.fillStyle = '#f1d39c';
   ctx.fillRect(px + 4, py, player.size - 8, 10);
 
-  ctx.fillStyle = '#2e2e2e';
-  ctx.fillRect(px + 4, py + 14, 4, 8);
-  ctx.fillRect(px + player.size - 8, py + 14, 4, 8);
+  ctx.fillStyle = '#2d2d2d';
+  ctx.fillRect(px + 3, py + 14, 4, 8);
+  ctx.fillRect(px + player.size - 7, py + 14, 4, 8);
 }
 
 function drawWorld() {
-  ctx.fillStyle = '#8ec7ee';
+  ctx.fillStyle = '#8fc9ef';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let y = 0; y < WORLD_H; y += 1) {
@@ -194,16 +200,17 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// CRITICAL FIX: Listen on document, not window or canvas
 document.addEventListener('keydown', (event) => {
-  const key = event.key.toLowerCase();
+  const key = event.key;
 
-  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
-    inputState[key] = true;
+  if (['w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+    event.preventDefault();
   }
-  if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
-    inputState[key] = true;
-  }
+
+  if (key === 'w' || key === 'ArrowUp') keys.w = true;
+  if (key === 's' || key === 'ArrowDown') keys.s = true;
+  if (key === 'a' || key === 'ArrowLeft') keys.a = true;
+  if (key === 'd' || key === 'ArrowRight') keys.d = true;
 
   if (key === ' ') {
     event.preventDefault();
@@ -213,26 +220,27 @@ document.addEventListener('keydown', (event) => {
   if (key === 'r') {
     createWorld();
     player = {
-      x: 6 * TILE + 10,
-      y: 6 * TILE + 10,
-      size: 20,
+      x: 6 * TILE + 12,
+      y: 6 * TILE + 12,
+      size: 18,
       speed: 2.4,
       health: 10,
       blocks: 0,
+      dirX: 1,
+      dirY: 0,
     };
   }
 });
 
 document.addEventListener('keyup', (event) => {
-  const key = event.key.toLowerCase();
-
-  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
-    inputState[key] = false;
-  }
-  if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
-    inputState[key] = false;
-  }
+  const key = event.key;
+  if (key === 'w' || key === 'ArrowUp') keys.w = false;
+  if (key === 's' || key === 'ArrowDown') keys.s = false;
+  if (key === 'a' || key === 'ArrowLeft') keys.a = false;
+  if (key === 'd' || key === 'ArrowRight') keys.d = false;
 });
 
+canvas.addEventListener('click', () => canvas.focus());
+canvas.focus();
 createWorld();
 requestAnimationFrame(gameLoop);
