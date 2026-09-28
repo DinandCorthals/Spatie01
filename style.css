@@ -1,0 +1,100 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(180deg, #87ceeb 0%, #dfefff 100%);
+  color: #1d1d1d;
+}
+
+.page-shell {
+  width: min(1000px, 92vw);
+  padding: 20px 20px 28px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #3b6f2a;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 3rem);
+}
+
+.hud {
+  display: flex;
+  gap: 16px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.game-panel {
+  background: rgba(255, 255, 255, 0.3);
+  border: 4px solid rgba(0, 0, 0, 0.2);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #7ec8ff;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+  background: rgba(255, 255, 255, 0.28);
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.controls h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.controls p {
+  margin: 6px 0;
+}
+
+@media (max-width: 640px) {
+  .topbar,
+  .controls {
+    grid-template-columns: 1fr;
+    display: block;
+  }
+
+  .topbar {
+    display: grid;
+    gap: 12px;
+  }
+
+  .hud {
+    justify-content: space-between;
+  }
+}

@@ -20,16 +20,9 @@ const BLOCKS = {
   bedrock: { color: '#404040', solid: true },
 };
 
-const DIRECTIONS = {
-  up: [0, -1],
-  down: [0, 1],
-  left: [-1, 0],
-  right: [1, 0],
-};
-
 let player = {
-  x: 4,
-  y: 4,
+  x: 4 * TILE + TILE / 2,
+  y: 4 * TILE + TILE / 2,
   size: 22,
   speed: 2.2,
   health: 10,
@@ -37,8 +30,7 @@ let player = {
 };
 
 let world = [];
-let lastTime = 0;
-let keys = {};
+const keys = {};
 
 function createWorld() {
   world = Array.from({ length: WORLD_H }, (_, y) =>
@@ -89,8 +81,7 @@ function collides(nx, ny) {
 
   return cells.some(([x, y]) => {
     if (x < 0 || y < 0 || x >= WORLD_W || y >= WORLD_H) return true;
-    const tile = world[y][x];
-    return BLOCKS[tile]?.solid;
+    return BLOCKS[world[y][x]]?.solid;
   });
 }
 
@@ -98,10 +89,10 @@ function updatePlayer() {
   let moveX = 0;
   let moveY = 0;
 
-  if (keys['w'] || keys['arrowup']) moveY -= 1;
-  if (keys['s'] || keys['arrowdown']) moveY += 1;
-  if (keys['a'] || keys['arrowleft']) moveX -= 1;
-  if (keys['d'] || keys['arrowright']) moveX += 1;
+  if (keys.w || keys.arrowup) moveY -= 1;
+  if (keys.s || keys.arrowdown) moveY += 1;
+  if (keys.a || keys.arrowleft) moveX -= 1;
+  if (keys.d || keys.arrowright) moveX += 1;
 
   if (moveX !== 0 || moveY !== 0) {
     const length = Math.hypot(moveX, moveY) || 1;
@@ -120,8 +111,8 @@ function updatePlayer() {
   if (player.health <= 0) {
     player.health = 10;
     player.blocks = 0;
-    player.x = 4 * TILE;
-    player.y = 4 * TILE;
+    player.x = 4 * TILE + TILE / 2;
+    player.y = 4 * TILE + TILE / 2;
   }
 
   player.x = Math.max(player.size / 2, Math.min(canvas.width - player.size / 2, player.x));
@@ -175,10 +166,7 @@ function updateHud() {
   blocksText.textContent = player.blocks;
 }
 
-function gameLoop(timestamp) {
-  const delta = timestamp - lastTime;
-  lastTime = timestamp;
-
+function gameLoop() {
   updatePlayer();
   updateHud();
 
@@ -215,6 +203,4 @@ window.addEventListener('keyup', (event) => {
 });
 
 createWorld();
-player.x = 4 * TILE + TILE / 2;
-player.y = 4 * TILE + TILE / 2;
 requestAnimationFrame(gameLoop);
