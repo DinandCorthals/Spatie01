@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A first-person 3D block adventure. Explore, mine, and find the exit." />
     <title>Minecraft Mini</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -16,27 +17,44 @@
         <div class="hud" aria-live="polite">
           <span>Health: <strong id="health">10</strong></span>
           <span>Blocks: <strong id="blocks">0</strong></span>
+          <span class="exit-direction"><span id="exitArrow" class="exit-arrow" aria-hidden="true">↑</span> Exit <strong id="exitDistance">52 m</strong></span>
+          <span class="game-status" id="gameStatus">Explore and find the green gate</span>
         </div>
       </header>
 
       <main class="game-panel">
-        <canvas id="gameCanvas" width="960" height="540" tabindex="0"></canvas>
+        <canvas id="gameCanvas" width="896" height="512" tabindex="0" aria-label="Three-dimensional block world game">
+          Your browser does not support WebGL.
+        </canvas>
+        <button class="look-prompt" id="lookPrompt" type="button">
+          <strong>Click to enter the world</strong>
+          <span>Mouse to look · WASD to move</span>
+          <span>Escape releases the mouse</span>
+        </button>
+        <span class="crosshair" id="crosshair" aria-hidden="true" hidden></span>
       </main>
 
       <section class="controls">
         <div>
           <h2>Controls</h2>
-          <p>Move: WASD / Arrow Keys</p>
-          <p>Mine: Spacebar</p>
-          <p>Restart: R</p>
+          <p>Move: WASD / Arrow Keys · Look: Mouse</p>
+          <p>Sprint: Shift · Mine: Spacebar</p>
+          <p>Restart: R · Release mouse: Escape</p>
         </div>
         <div>
           <h2>Goal</h2>
-          <p>Collect blocks, avoid the lava, and survive the adventure.</p>
+          <p>Explore the open world and follow the compass to the green gate. Avoid lava; water restores health.</p>
         </div>
       </section>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+      window.addEventListener('error', (event) => {
+        const status = document.getElementById('gameStatus');
+        if (status && event.error) status.textContent = 'Game error: ' + event.message;
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js" onerror="document.getElementById('gameStatus').textContent='Three.js could not load. Check your internet connection and reload.'"></script>
+    <script src="fps-game.js"></script>
   </body>
 </html>
