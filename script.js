@@ -30,7 +30,17 @@ let player = {
 };
 
 let world = [];
-const keys = {};
+
+const inputState = {
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+  arrowup: false,
+  arrowdown: false,
+  arrowleft: false,
+  arrowright: false,
+};
 
 function createWorld() {
   world = Array.from({ length: WORLD_H }, (_, y) =>
@@ -89,10 +99,10 @@ function updatePlayer() {
   let moveX = 0;
   let moveY = 0;
 
-  if (keys.w || keys.arrowup) moveY -= 1;
-  if (keys.s || keys.arrowdown) moveY += 1;
-  if (keys.a || keys.arrowleft) moveX -= 1;
-  if (keys.d || keys.arrowright) moveX += 1;
+  if (inputState.w || inputState.arrowup) moveY -= 1;
+  if (inputState.s || inputState.arrowdown) moveY += 1;
+  if (inputState.a || inputState.arrowleft) moveX -= 1;
+  if (inputState.d || inputState.arrowright) moveX += 1;
 
   if (moveX !== 0 || moveY !== 0) {
     const length = Math.hypot(moveX, moveY) || 1;
@@ -184,9 +194,16 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-window.addEventListener('keydown', (event) => {
+// CRITICAL FIX: Listen on document, not window or canvas
+document.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
-  keys[key] = true;
+
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+    inputState[key] = true;
+  }
+  if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
+    inputState[key] = true;
+  }
 
   if (key === ' ') {
     event.preventDefault();
@@ -206,13 +223,16 @@ window.addEventListener('keydown', (event) => {
   }
 });
 
-window.addEventListener('keyup', (event) => {
-  keys[event.key.toLowerCase()] = false;
+document.addEventListener('keyup', (event) => {
+  const key = event.key.toLowerCase();
+
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+    inputState[key] = false;
+  }
+  if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
+    inputState[key] = false;
+  }
 });
 
-canvas.addEventListener('click', () => canvas.focus());
-
 createWorld();
-canvas.focus();
 requestAnimationFrame(gameLoop);
-
